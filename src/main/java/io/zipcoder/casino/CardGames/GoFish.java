@@ -8,74 +8,101 @@ import java.util.*;
 
 public class GoFish implements Game {
 
-    Console newConsole = new Console(System.in, System.out);
-    Random random = new Random();
 
-    private Player user;
+    //------------------------------------------------------------------------------------------------------------------
+    // Fields ----------------------------------------------------------------------------------------------------------
+
+    private Console newConsole = new Console(System.in, System.out);
+    private Random random = new Random();
+    private Player player;
     private Deck goFishDeck;
     private CardHand playerHand;
     private CardHand computerHand;
+    private ArrayList<Card> winnings;
     boolean winGame = false;
 
-    public GoFish(Player player) {
-        this.user = player;
 
-        //initialize deck and shuffle
+    //------------------------------------------------------------------------------------------------------------------
+    // Constructor -----------------------------------------------------------------------------------------------------
+
+    public GoFish(Player player) {
+        this.player = player;
+
+        //initialize and shuffle deck
         this.goFishDeck = new Deck(1);
         goFishDeck.shuffleDeck();
 
         //initialize players' hand and deal cards
         playerHand = new CardHand(goFishDeck.dealCards(5));
         computerHand = new CardHand(goFishDeck.dealCards(5));
-
-
     }
 
 
+    //------------------------------------------------------------------------------------------------------------------
+    // Method called to play the game ----------------------------------------------------------------------------------
+
     public void startGame() {
 
-        newConsole.println("\n\nLoading Go Fish.... \n\n");
+        newConsole.println("Welcome to Go Fish! \n");
+        newConsole.getStringInput("\n\n\n\n\n\n\nPress Enter to continue\n\n\n\n\n" );
 
         do {
 
-            newConsole.println("%s's turn \n\n", this.user.getID());
+            newConsole.println("%s's turn \n\n", this.player.getID());
             playerTurn();
-            //evaluateHand(playerHand);
 
+            winGame = checkIfWinner(playerHand);
+
+            if (winGame){
+                newConsole.println("\n" + player.getID() + " is the winner with : \n");
+                displayResults();
+                break;
+            }
 
             newConsole.println("Computer's Turn \n\n");
             computerTurn();
-            //evaluateHand(computerHand);
 
-        } while (!winGame);
+            winGame = checkIfWinner(computerHand);
+            if (winGame){
+                newConsole.println("\n Computer is the winner with : \n");
+                displayResults();
+                break;
+            }
 
+        } while (!false);
 
         promptLeaveGame();
     }
 
 
+    //------------------------------------------------------------------------------------------------------------------
+    // Player's and Computers turn -------------------------------------------------------------------------------------
+
     public void playerTurn() {
 
+        newConsole.println("======Your Cards======\n\n");
         newConsole.println(playerHand.displayHand());
+        newConsole.println("======================");
 
-        String cardWanted = newConsole.getStringInput("Which value would you like to ask for? ").toUpperCase();
+        String cardWanted = newConsole.getStringInput("\nWhich value would you like to ask for? ").toUpperCase();
 
         //If Player asked for a card that is in hand
         if (haveCard(playerHand, cardWanted)) {
 
             if (haveCard(computerHand, cardWanted)) {
                 newConsole.println("\nThe computer has this card\n");
-                newConsole.println("New Card(s) >> " + tradeCards(computerHand, cardWanted, playerHand).toString()
-                        .replace("[", "").replace("]", ""));
+                newConsole.println("\nNew Card(s) >> " + tradeCards(computerHand, cardWanted, playerHand).toString()
+                        .replace("[", "").replace("]", "").replace(", ", ""));
 
             } else {
                 newConsole.println("\nGo Fish!!!\n");
-                newConsole.println("New Card >> " + goFishForCard(playerHand).toString());
+                newConsole.println("\nNew Card >> " + goFishForCard(playerHand).toString().replace("[", "")
+                        .replace("]", ""));
             }
 
-            System.out.println(playerHand.displayHand());
-
-
+            newConsole.println("======Your Cards======\n\n");
+            newConsole.println(playerHand.displayHand());
+            newConsole.println("======================");
 
         }else{
             newConsole.println("\n\nYou don't have this card. Try it again.\n\n");
@@ -106,7 +133,8 @@ public class GoFish implements Game {
     }
 
 
-    //Tools for Game
+    //------------------------------------------------------------------------------------------------------------------
+    // Check if other play has card and trading ------------------------------------------------------------------------
 
     public boolean haveCard(CardHand opponent, String wantedCard) {
 
@@ -119,7 +147,7 @@ public class GoFish implements Game {
 
     public ArrayList tradeCards(CardHand givingHand, String wantedCard, CardHand receivingHand){
 
-        ArrayList<Card> tradingCards = new ArrayList<>();
+        ArrayList<Card> tradingCards = new ArrayList<Card>();
 
         for (Card card : givingHand.userHand) {
             if (card.getRank().toString().equals(wantedCard))
@@ -133,6 +161,10 @@ public class GoFish implements Game {
 
     }
 
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Getting card from deck ------------------------------------------------------------------------------------------
+
     public Card goFishForCard(CardHand hand) {
 
         Card newCard = goFishDeck.drawCard();
@@ -141,9 +173,11 @@ public class GoFish implements Game {
         return newCard;
     }
 
-    public boolean evaluateHand(CardHand hand) {
 
-        ArrayList<Card> winnings;
+    //------------------------------------------------------------------------------------------------------------------
+    // Check if player's hand is winner --------------------------------------------------------------------------------
+
+    public boolean checkIfWinner(CardHand hand) {
         int counter;
 
         for (Card checkCard : hand.userHand) {
@@ -158,7 +192,6 @@ public class GoFish implements Game {
             }
 
             if (counter == 4) {
-                hand.userHand.removeAll(winnings);
                 return true;
             }
 
@@ -169,20 +202,53 @@ public class GoFish implements Game {
     }
 
 
-    public void promptLeaveGame() {
+    //------------------------------------------------------------------------------------------------------------------
+    // Gets a random rank from computer's hand -------------------------------------------------------------------------
 
-    }
-
-    public void displayResults() {
-
-    }
-
-
-    //Computer Play
     public Rank getCompCard() {
 
         Card newCard = computerHand.userHand.get(random.nextInt(computerHand.userHand.size()));
         return newCard.getRank();
     }
 
+
+    //------------------------------------------------------------------------------------------------------------------
+    //
+
+
+    public void promptLeaveGame() {
+        String exitOrNo;
+        boolean c = false;
+        while (!c) {
+
+            exitOrNo = newConsole.getStringInput("Would you like to play again?\n1. Play again\n2. Exit");
+
+            if(exitOrNo.equals("")){
+                exitOrNo = " ";
+            }
+
+            switch (exitOrNo.charAt(0)) {
+                case '1':
+                    startGame();
+                    c = true;
+                    break;
+                case '2':
+                    break;
+                default:
+                    newConsole.println("Please choose one of the options.");
+                    break;
+            }
+        }
+
+
+    }
+
+    public void displayResults() {
+
+        newConsole.println(winnings.toString().replace("[", "").replace("]", "")
+                                        .replace(", ", ""));
+
+    }
+
 }
+
