@@ -13,7 +13,7 @@ public class Craps implements GamblingGame {
     private GamblingPlayer crapsPlayer;
     private Console console;
     private boolean continuePlay;
-    private boolean winGame;
+
     private Integer turn;
     private Integer targetScore;
     private int sum;
